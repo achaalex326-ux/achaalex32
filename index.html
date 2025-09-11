@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔥 3 en Raya Online 🔥</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===== Fondo con GIF ===== */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: url('https://i.pinimg.com/originals/e0/62/7c/e0627c449ec686b5607e47cb687acecc.gif') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    /* ===== Panel central ===== */
+    .panel {
+      background: rgba(0,0,0,0.5);
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 800px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    h1, h2 {
+      color: #fff;
+      text-align: center;
+    }
+
+    /* ===== Botones ===== */
+    button {
+      background: linear-gradient(45deg, #ff8a00, #e52e71, #9b00ff);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px white;
+    }
+
+    /* ===== Inputs ===== */
+    input {
+      padding: 10px;
+      border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.5);
+      margin-right: 10px;
+      width: 200px;
+    }
+
+    /* ===== Pantallas ===== */
+    .pantalla {
+      display: none;
+      width: 100%;
+      text-align: center;
+    }
+
+    .pantalla.activa {
+      display: block;
+    }
+    
+
+    /* ===== Tablero ===== */
+    #tablero {
+      display: grid;
+      grid-template-columns: repeat(3, 120px);
+      grid-template-rows: repeat(3, 120px);
+      gap: 8px;
+      padding: 10px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      border: 3px solid;
+      border-image-slice: 1;
+      border-image-source: linear-gradient(45deg, #ff8a00, #e52e71, #9b00ff);
+    }
+
+    .celda {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 60px;
+      font-weight: bold;
+      background-color: rgba(255,255,255,0.2);
+      cursor: pointer;
+      border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.5);
+      transition: all 0.2s;
+    }
+
+    .celda:hover {
+      background-color: rgba(255,255,255,0.4);
+    }
+
+    .celda.ganadora {
+      background-color: gold !important;
+      box-shadow: 0 0 15px gold;
+    }
+
+    /* ===== Chat ===== */
+    #chatMensajes {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 10px;
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      color: #fff;
+    }
+
+    /* ===== Amigos ===== */
+    .amigo-box {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 10px;
+      margin: 5px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* ===== Inputs y panel amigos ===== */
+    #contenidoAmigos, #amigosParaInvitar, #amigosEnLinea {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+
+    <!-- LOGIN -->
+    <div id="pantallaLogin" class="pantalla activa">
+      <h1>🔥 3 en Raya Online 🔥</h1>
+      <input type="text" id="nombreRegistro" placeholder="Nombre">
+      <input type="email" id="emailLogin" placeholder="Email">
+      <input type="password" id="passwordLogin" placeholder="Contraseña">
+      <div style="margin-top:10px;">
+        <button id="btnLogin">Iniciar Sesión</button>
+        <button id="btnRegister">Registrarse</button>
+      </div>
+    </div>
+
+    <!-- PARTIDAS -->
+    <div id="pantallaPartidas" class="pantalla">
+      <h2>Partidas</h2>
+      <button id="btnCrearPartida">Crear Partida</button>
+      <input type="text" id="codigoPartida" placeholder="Código de partida">
+      <button id="btnUnirsePartida">Unirse a Partida</button>
+      <button id="btnAmigos">Amigos</button>
+      <button id="btnLogout">Cerrar Sesión</button>
+      <div id="amigosEnLinea"></div>
+    </div>
+
+    <!-- JUEGO -->
+    <div id="pantallaJuego" class="pantalla">
+      <h2>3 en Raya</h2>
+      <div>
+        <span id="jugadorXNombre"></span> vs <span id="jugadorONombre"></span>
+      </div>
+      <div id="tablero"></div>
+      <div id="mensajeGanador"></div>
+      <div id="chatMensajes"></div>
+      <input type="text" id="mensajeInput" placeholder="Escribe un mensaje">
+      <button id="btnEnviarMensaje">Enviar</button>
+      <div id="amigosParaInvitar"></div>
+    </div>
+
+    <!-- AMIGOS -->
+    <div id="pantallaAmigos" class="pantalla">
+      <h2>Amigos</h2>
+      <div>
+        <button id="btnSeccionAñadir">Añadir</button>
+        <button id="btnSeccionSolicitudes">Solicitudes</button>
+        <button id="btnSeccionMisAmigos">Mis Amigos</button>
+        <button id="btnVolverPartidas3">Volver</button>
+      </div>
+      <div id="contenidoAmigos"></div>
+    </div>
+
+  </div>
+  <script type="module" src="/public/js/firebaseApp.js"></script>
+  <script type="module" src="/public/js/main.js"></script>
+</body>
+</html>
