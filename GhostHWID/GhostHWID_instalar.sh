@@ -3,7 +3,7 @@ set -euo pipefail
 umask 077
 
 if [[ ${1:-} == '--help' ]]; then
-    echo 'Ghost HWID 0.1 (piloto): instala servicio independiente en TCP 8081.'
+    echo 'Ghost HWID 0.1.1 (piloto): instala servicio independiente en TCP 8081.'
     echo 'No cambia Kira, OpenSSH, PAM ni firewall. Requiere Ubuntu 22.04.'
     echo 'Usa --extract DIRECTORIO para revisar el codigo sin instalarlo.'
     exit 0
@@ -13,7 +13,7 @@ trap 'rm -rf -- "$stage"' EXIT
 
 cat > "$stage/ghosthwid.py" <<'GHOST_PY_SOURCE'
 #!/usr/bin/env python3
-"""Ghost HWID 0.1: separate, experimental SSH forwarding endpoint.
+"""Ghost HWID 0.1.1: separate, experimental SSH forwarding endpoint.
 
 Does not use system accounts or modify OpenSSH/PAM/Kira. Quota counts bytes
 received on forwarding streams (upload + download), not IP/SSH overhead.
@@ -48,8 +48,8 @@ LOG = logging.getLogger("ghosthwid")
 
 
 def ident(value):
-    if not re.fullmatch(r"[0-9a-fA-F]{32}", value):
-        raise ValueError("El HWID debe tener exactamente 32 caracteres hexadecimales.")
+    if not re.fullmatch(r"(?:[0-9a-fA-F]{32}|h[0-9a-fA-F]{31,32})", value):
+        raise ValueError("HWID no valido: copia el ID del dispositivo completo, incluida la h si aparece. No uses el ID de acceso HC2-.")
     return hashlib.sha256(value.encode("ascii")).hexdigest()
 
 
@@ -475,7 +475,7 @@ def menu():
         try:
             values = {}
             if action != "list":
-                values["hwid"] = input("HWID completo (32 caracteres): ").strip()
+                values["hwid"] = input("HWID completo (incluye la h si aparece): ").strip()
             if action == "add":
                 values["name"] = input("Nombre del cliente: ").strip()
             if action in ("add", "renew"):
@@ -493,7 +493,7 @@ def main():
     os.umask(0o077)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     logging.getLogger("paramiko").setLevel(logging.CRITICAL)
-    p = argparse.ArgumentParser(description="Ghost HWID 0.1 — servicio separado de prueba")
+    p = argparse.ArgumentParser(description="Ghost HWID 0.1.1 — servicio separado de prueba")
     sub = p.add_subparsers(dest="command", required=True)
     sub.add_parser("init")
     sub.add_parser("menu")
@@ -638,7 +638,7 @@ if ! systemctl is-active --quiet ghosthwid.service; then
     exit 1
 fi
 echo
-echo 'Instalado Ghost HWID 0.1 en TCP 8081.'
+echo 'Instalado Ghost HWID 0.1.1 en TCP 8081.'
 echo 'No hay clientes creados. Abre el menu con: ghosthwid'
 echo 'Soporte mostrado: @GhostProxy_Tech'
 echo 'No se modificaron Kira, OpenSSH, PAM ni las reglas del firewall.'
@@ -649,7 +649,7 @@ exit 0
 
 # DOCUMENTACION Y RESULTADOS DE PRUEBA
 
-# # Ghost HWID 0.1 — prueba con HTTP Custom
+# # Ghost HWID 0.1.1 — prueba con HTTP Custom
 # 
 # Preparado para Ubuntu 22.04, con contacto **@GhostProxy_Tech**.
 # Es un servicio nuevo y experimental: todavía no se ha probado en tu VPS ni con
@@ -661,8 +661,9 @@ exit 0
 #   renovar, suspender, habilitar, cambiar cuota y reiniciar contadores.
 # - Autenticación SSH por contraseña: usuario = HWID y contraseña = mismo HWID,
 #   exactamente como los envía la opción de login por HWID de HTTP Custom.
-# - Admite los HWID de 32 caracteres hexadecimales del ejemplo recibido, respetando
-#   mayúsculas/minúsculas. No genera una cuenta Linux por cada HWID.
+# - Admite HWID antiguos de 32 caracteres hexadecimales y nuevos con prefijo h
+#   seguido de 31 o 32 caracteres hexadecimales, respetando mayúsculas/minúsculas.
+#   El prefijo h forma parte de la credencial: no se elimina. El ID HC2- es distinto. No genera una cuenta Linux por cada HWID.
 # - Una conexión SSH autenticada simultánea por cuenta, con reserva exclusiva
 #   durante la autenticación. Dentro de ella admite múltiples canales TCP para que
 #   funcionen las aplicaciones del teléfono. Una conexión no significa una persona
@@ -715,7 +716,7 @@ exit 0
 #    ghosthwid
 #    ```
 # 
-# 4. Elige **1 Registrar HWID**, pega tu HWID completo y escribe un nombre de
+# 4. Elige **1 Registrar HWID**, pega tu HWID completo, incluyendo la h si aparece, y escribe un nombre de
 #    prueba, los días y la cuota en GB. Usa tu propia cuenta como primer ensayo.
 #    El plazo empieza al registrar el cliente, no en su primera conexión.
 #    No se registra automáticamente ningún HWID durante la instalación.
@@ -850,13 +851,14 @@ exit 0
 # de prueba en tu entorno. Las pruebas incluidas usan Paramiko 5.1.0 en el entorno
 # de desarrollo, no una instalación remota en tu servidor.
 
-# Ghost HWID 0.1 — verificacion local
+# Ghost HWID 0.1.1 — verificacion local
 # 
 # Python: 3.12.14
 # Paramiko: 5.1.0
 # 
-# 13 pruebas de integracion: OK
+# 14 pruebas de integracion: OK
 # - HWID y entradas invalidas
+# - Formatos nuevos h+31 y h+32 hex: autenticacion real y rechazo de duplicado
 # - Concurrencia: un ganador en ocho intentos simultaneos
 # - Contadores de subida y bajada con TCP echo y cierre parcial
 # - Suspension de una conexion activa
@@ -874,3 +876,5 @@ exit 0
 # Pendiente: instalacion en Ubuntu 22.04 con systemd y paquete python3-paramiko
 # de Ubuntu, cliente HTTP Custom Android real, firewall, badvpn y prueba de carga.
 # No se ha accedido ni se ha instalado nada en el VPS del usuario.
+# 
+# Actualizador: conversion exacta de la version anterior, idempotencia y rechazo de codigo inesperado: OK.
